@@ -59,7 +59,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Class1.cs" />
+    <Compile Include="JudgeStatus.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="yomiage.xaml.cs">
       <DependentUpon>yomiage.xaml</DependentUpon>
