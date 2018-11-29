@@ -29,19 +29,22 @@ namespace hayaoshi
         List<(Player player, JudgeStatus judge)> history = new List<(Player player, JudgeStatus judge)>();
         int questionNumber = 0;
         Player throughPlayer;
+        Dictionary<string, string> sounds = new Dictionary<string, string>() {
+            {"button", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\buttonSound6.wav"},
+            {"correct", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\correctSound6.wav"},
+            {"wrong", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\wrongBuzzer2.wav" },
+            {"buzzer", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\buzzer.wav" }
+        };
+        string[] questionSounds =  {
+            "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\開演ブザー.wav",
+            "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ1.m4a",
+            "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ2.m4a",
+            "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ3.m4a"
+        };
 
         public Hayaoshi()
         {
             InitializeComponent();
-            //var push = task.run(() =>
-            //{
-            //    for(; ; )
-            //    {
-
-            //        system.threading.thread.sleep(1);
-            //    }
-            //}
-            //);
             string[] names = new string[4] { "ジェフ・ベゾス", "ビル・ゲイツ", "Warren Buffett", "孫 正義" };
             Label[] nameLabels = new Label[4] { name0, name1, name2, name3 };
             Label[] keyLabels = new Label[4] { key0, key1, key2, key3 };
@@ -91,8 +94,7 @@ namespace hayaoshi
                         pushed = true;
                         through.Content = "無効";
                         pushPlayer = players[i];
-                        Microsoft.SmallBasic.Library.Sound.Stop("C:\\Users\\Tsurusaki\\Documents\\hayaoshi\\hayaoshiCsharp\\hayaoshi\\buttonSound.mp3");
-                        Microsoft.SmallBasic.Library.Sound.Play("C:\\Users\\Tsurusaki\\Documents\\hayaoshi\\hayaoshiCsharp\\hayaoshi\\buttonSound.mp3");
+                        playSound(sounds["button"]);
                         message.Content = "正解ならばoを、不正解ならばxを押してください";
                     }
                 }
@@ -105,6 +107,7 @@ namespace hayaoshi
                     pushPlayer.LightLabel.Content = "";
                     if (e.Key == Key.O)
                     {
+                        playSound(sounds["correct"]);
                         pushPlayer.Point++;
                         pushPlayer.PointLabel.Content = pushPlayer.Point.ToString();
                         history.Add((pushPlayer, JudgeStatus.Point));
@@ -112,6 +115,7 @@ namespace hayaoshi
                         questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
                     } else
                     {
+                        playSound(sounds["wrong"]);
                         pushPlayer.Mistake++;
                         pushPlayer.MistakeLabel.Content = pushPlayer.Mistake.ToString();
                         history.Add((pushPlayer, JudgeStatus.Mistake));
@@ -147,6 +151,7 @@ namespace hayaoshi
                     {
 
                     }
+                    stopSound();
                     questionNumber--;
                     questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
                 }
@@ -164,10 +169,23 @@ namespace hayaoshi
                 message.Content = "出題中";
                 through.Content = "through";
             }
+            stopSound();
             questionNumber++;
             questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
             pushed = false;
             pushPlayer.LightLabel.Content = "";
+        }
+
+        private void questionClick(object sender, RoutedEventArgs e) {
+            if (!pushed) {
+                stopSound();
+                int len = questionSounds.Length;
+                if (questionNumber < len) {
+                    playSound(questionSounds[questionNumber]);
+                } else {
+                    message.Content = "もう問題がありません";
+                }
+            }
         }
 
         //private static string KeyEventArgsToString(KeyEventArgs e)
@@ -192,17 +210,23 @@ namespace hayaoshi
         //    return s;
         //}
 
-        private IEnumerator Push()
-        {
-            for (; ; )
-            {
-                yield return null;
-            }
-        }
-
         private void GridLoaded(object sender, RoutedEventArgs e)
         {
             grid.Focus();
+        }
+
+        private void playSound(string path) {
+            stopSound();
+            Microsoft.SmallBasic.Library.Sound.Play(path);
+        }
+
+        private void stopSound() {
+            foreach (string item in sounds.Values) {
+                Microsoft.SmallBasic.Library.Sound.Stop(item);
+            }
+            foreach (string item in questionSounds) {
+                Microsoft.SmallBasic.Library.Sound.Stop(item);
+            }
         }
     }
 }
