@@ -12,6 +12,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using Microsoft.DirectX.DirectInput;
+using DXKey = Microsoft.DirectX.DirectInput.Key;
+using SysKey = System.Windows.Input.Key;
 
 namespace hayaoshi
 {
@@ -22,7 +26,7 @@ namespace hayaoshi
     public partial class Hayaoshi : Window
     {
         bool pushed = false;
-        Key[] judgingButton;
+        SysKey[] judgingButton;
         Player[] players;
         int playerSize = 4;
         Player pushPlayer;
@@ -41,6 +45,10 @@ namespace hayaoshi
             "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ2.m4a",
             "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ3.m4a"
         };
+        int joystickCount = 0; //ゲームパッドの数
+
+        Device[] joystick;
+
 
         public Hayaoshi()
         {
@@ -49,7 +57,7 @@ namespace hayaoshi
             Label[] nameLabels = new Label[4] { name0, name1, name2, name3 };
             Label[] keyLabels = new Label[4] { key0, key1, key2, key3 };
             Label[] lightlabels = new Label[4] { push0, push1, push2, push3 };
-            Key[] buttons = new Key[4] { Key.D2, Key.T, Key.K, Key.OemBackslash };
+            SysKey[] buttons = new SysKey[4] { SysKey.D2, SysKey.T, SysKey.K, SysKey.OemBackslash };
             Label[] pointLabels = new Label[4] { point0, point1, point2, point3 };
             Label[] missLabels = new Label[4] { miss0, miss1, miss2, miss3 };
             players = new Player[playerSize];
@@ -69,7 +77,7 @@ namespace hayaoshi
 
             push0.Content = "aa";
             pushed = false;
-            judgingButton = new Key[] {Key.O, Key.X};
+            judgingButton = new SysKey[] {SysKey.O, SysKey.X};
             
             for (int i = 0; i < playerSize; i++)
             {
@@ -80,6 +88,91 @@ namespace hayaoshi
             }
 
             questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
+
+            DeviceList devList;
+
+            Console.WriteLine("aaa");
+            devList = Manager.GetDevices(DeviceClass.GameControl, EnumDevicesFlags.AttachedOnly);
+            joystickCount = devList.Count;
+            joystick = new Device[joystickCount];
+
+            int count = 0;
+            foreach (DeviceInstance dev in devList) {
+                joystick[count] = new Device(dev.InstanceGuid);
+                Console.WriteLine("aaa");
+                //joystick.SetCooperativeLevel(this, CooperativeLevelFlags.Background | CooperativeLevelFlags.NonExclusive);
+                //break;
+                count++;
+            }
+
+            for (int i = 0; i < joystickCount; i++) {
+                joystick[i].SetDataFormat(DeviceDataFormat.Joystick);
+
+                joystick[i].Acquire();
+                Console.WriteLine("名称: " + joystick[i].DeviceInformation.ProductName);
+                // コントローラの軸の数
+                Console.WriteLine("軸の数: " + joystick[i].Caps.NumberAxes);
+                // コントローラに有るボタンの数
+                Console.WriteLine("ボタンの数: " + joystick[i].Caps.NumberButtons);
+                // PoV hatの数
+                Console.WriteLine("PoVハットの数: " + joystick[i].Caps.NumberPointOfViews);
+            }
+
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromTicks(1);
+            timer.Start();
+            timer.Tick += TimerTick;
+        }
+
+        private void GetJoystickState(int i) {
+            // デバイス未決定時は何もしない
+            if (joystick[i] == null) {
+                return;
+            }
+
+            try {
+                // コントローラの状態をポーリングで取得
+                joystick[i].Poll();
+                JoystickState state = joystick[i].CurrentJoystickState;
+
+                //-----------------------
+                //十字キーの状態を出力
+                //-----------------------
+                //Console.WriteLine("X=" + state.X + " Y=" + state.Y);
+
+                //-----------------------
+                // ボタンの状態を出力
+                //-----------------------
+                //int count = 0;
+                //StringBuilder tmpBuff = new StringBuilder();
+                //foreach (byte button in state.GetButtons()) {
+                //    if (count++ >= joystick[i].Caps.NumberButtons) {
+                //        break;  // ボタンの数分だけ状態を取得したら終了
+                //    }
+                //    tmpBuff.Append(button.ToString() + ", ");
+                //}
+                //Console.WriteLine(tmpBuff.ToString());
+
+                int count = 0;
+                foreach (byte button in state.GetButtons()) {
+                    if (count++ >= joystick[i].Caps.NumberButtons) {
+                        break;
+                    }
+                    if (button >= 100) {
+                        System.Windows.Forms.SendKeys.SendWait("_");
+                    }
+                }
+
+            } catch (Exception ex) {
+                Console.WriteLine(ex.Message + Environment.NewLine);
+            }
+        }
+
+        private void TimerTick(object sender, EventArgs e) {
+            DispatcherTimer timer = sender as DispatcherTimer;
+            for (int i = 0; i < joystickCount; i++) {
+                GetJoystickState(i);
+            }
         }
 
         private void KeyPush(object sender, KeyEventArgs e)
@@ -105,7 +198,7 @@ namespace hayaoshi
                 {
                     pushed = false;
                     pushPlayer.LightLabel.Content = "";
-                    if (e.Key == Key.O)
+                    if (e.Key == SysKey.O)
                     {
                         playSound(sounds["correct"]);
                         pushPlayer.Point++;

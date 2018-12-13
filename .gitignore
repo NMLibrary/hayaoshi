@@ -3,6 +3,8 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+taoframework-2.1.0/
+
 # User-specific files
 *.suo
 *.user
