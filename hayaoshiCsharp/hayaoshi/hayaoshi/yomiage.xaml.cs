@@ -45,12 +45,11 @@ namespace hayaoshi
             "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ2.m4a",
             "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ3.m4a"
         };
-        int joystickCount = 0; //ゲームパッドの数
 
-        Device[] joystick;
+        Joystick[] Joysticks;
 
 
-        public Hayaoshi()
+        public Hayaoshi(MainWindow mainWindow)
         {
             InitializeComponent();
             string[] names = new string[4] { "ジェフ・ベゾス", "ビル・ゲイツ", "Warren Buffett", "孫 正義" };
@@ -89,34 +88,7 @@ namespace hayaoshi
 
             questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
 
-            DeviceList devList;
-
-            Console.WriteLine("aaa");
-            devList = Manager.GetDevices(DeviceClass.GameControl, EnumDevicesFlags.AttachedOnly);
-            joystickCount = devList.Count;
-            joystick = new Device[joystickCount];
-
-            int count = 0;
-            foreach (DeviceInstance dev in devList) {
-                joystick[count] = new Device(dev.InstanceGuid);
-                Console.WriteLine("aaa");
-                //joystick.SetCooperativeLevel(this, CooperativeLevelFlags.Background | CooperativeLevelFlags.NonExclusive);
-                //break;
-                count++;
-            }
-
-            for (int i = 0; i < joystickCount; i++) {
-                joystick[i].SetDataFormat(DeviceDataFormat.Joystick);
-
-                joystick[i].Acquire();
-                Console.WriteLine("名称: " + joystick[i].DeviceInformation.ProductName);
-                // コントローラの軸の数
-                Console.WriteLine("軸の数: " + joystick[i].Caps.NumberAxes);
-                // コントローラに有るボタンの数
-                Console.WriteLine("ボタンの数: " + joystick[i].Caps.NumberButtons);
-                // PoV hatの数
-                Console.WriteLine("PoVハットの数: " + joystick[i].Caps.NumberPointOfViews);
-            }
+            Joysticks = mainWindow.Joysticks;
 
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromTicks(1);
@@ -124,44 +96,29 @@ namespace hayaoshi
             timer.Tick += TimerTick;
         }
 
-        private void GetJoystickState(int i) {
+        private void GetJoystickState(Joystick joystick) {
             // デバイス未決定時は何もしない
-            if (joystick[i] == null) {
+            if (joystick.Device == null) {
                 return;
             }
 
             try {
                 // コントローラの状態をポーリングで取得
-                joystick[i].Poll();
-                JoystickState state = joystick[i].CurrentJoystickState;
-
-                //-----------------------
-                //十字キーの状態を出力
-                //-----------------------
-                //Console.WriteLine("X=" + state.X + " Y=" + state.Y);
-
-                //-----------------------
-                // ボタンの状態を出力
-                //-----------------------
-                //int count = 0;
-                //StringBuilder tmpBuff = new StringBuilder();
-                //foreach (byte button in state.GetButtons()) {
-                //    if (count++ >= joystick[i].Caps.NumberButtons) {
-                //        break;  // ボタンの数分だけ状態を取得したら終了
-                //    }
-                //    tmpBuff.Append(button.ToString() + ", ");
-                //}
-                //Console.WriteLine(tmpBuff.ToString());
+                joystick.Device.Poll();
+                JoystickState state = joystick.Device.CurrentJoystickState;
 
                 int count = 0;
+                bool pushed = false;
                 foreach (byte button in state.GetButtons()) {
-                    if (count++ >= joystick[i].Caps.NumberButtons) {
+                    if (count++ >= joystick.Device.Caps.NumberButtons) {
                         break;
                     }
                     if (button >= 100) {
-                        System.Windows.Forms.SendKeys.SendWait("_");
+                        System.Windows.Forms.SendKeys.SendWait(joystick.JoystickKey.ToString());
+                        pushed = true;
                     }
                 }
+                joystick.JoystickPushed = pushed;
 
             } catch (Exception ex) {
                 Console.WriteLine(ex.Message + Environment.NewLine);
@@ -170,8 +127,8 @@ namespace hayaoshi
 
         private void TimerTick(object sender, EventArgs e) {
             DispatcherTimer timer = sender as DispatcherTimer;
-            for (int i = 0; i < joystickCount; i++) {
-                GetJoystickState(i);
+            foreach (Joystick joystick in Joysticks) {
+                GetJoystickState(joystick);
             }
         }
 
