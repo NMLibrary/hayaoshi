@@ -89,47 +89,6 @@ namespace hayaoshi
             questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
 
             Joysticks = mainWindow.Joysticks;
-
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromTicks(1);
-            timer.Start();
-            timer.Tick += TimerTick;
-        }
-
-        private void GetJoystickState(Joystick joystick) {
-            // デバイス未決定時は何もしない
-            if (joystick.Device == null) {
-                return;
-            }
-
-            try {
-                // コントローラの状態をポーリングで取得
-                joystick.Device.Poll();
-                JoystickState state = joystick.Device.CurrentJoystickState;
-
-                int count = 0;
-                bool pushed = false;
-                foreach (byte button in state.GetButtons()) {
-                    if (count++ >= joystick.Device.Caps.NumberButtons) {
-                        break;
-                    }
-                    if (button >= 100) {
-                        System.Windows.Forms.SendKeys.SendWait(joystick.JoystickKey.ToString());
-                        pushed = true;
-                    }
-                }
-                joystick.JoystickPushed = pushed;
-
-            } catch (Exception ex) {
-                Console.WriteLine(ex.Message + Environment.NewLine);
-            }
-        }
-
-        private void TimerTick(object sender, EventArgs e) {
-            DispatcherTimer timer = sender as DispatcherTimer;
-            foreach (Joystick joystick in Joysticks) {
-                GetJoystickState(joystick);
-            }
         }
 
         private void KeyPush(object sender, KeyEventArgs e)
@@ -237,28 +196,6 @@ namespace hayaoshi
                 }
             }
         }
-
-        //private static string KeyEventArgsToString(KeyEventArgs e)
-        //{
-        //    Key key = e.Key;
-        //    Key systemKey = e.SystemKey;
-        //    KeyStates keyStates = e.KeyStates;
-        //    bool isRepeat = e.IsRepeat;
-        //    string s = "";
-        //    s += string.Format("{0}", key);      
-        //    //ModifierKeys modifierKeys = Keyboard.Modifiers;
-        //    //if ((modifierKeys & ModifierKeys.Alt) != ModifierKeys.None)
-        //    //    s += "  Alt ";
-        //    //if ((modifierKeys & ModifierKeys.Control) != ModifierKeys.None)
-        //    //    s += "  Control ";
-        //    //if ((modifierKeys & ModifierKeys.Shift) != ModifierKeys.None)
-        //    //    s += "  Shift ";
-        //    //if ((modifierKeys & ModifierKeys.Windows) != ModifierKeys.None)
-        //    //    s += "  Windows";
-        //    //if (key == Key.System)
-        //    //    s += systemKey;
-        //    return s;
-        //}
 
         private void GridLoaded(object sender, RoutedEventArgs e)
         {

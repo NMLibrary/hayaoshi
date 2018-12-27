@@ -6,10 +6,11 @@
         xmlns:local="clr-namespace:hayaoshi"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Grid Background="#111111">
         <Grid.RowDefinitions>
-            <RowDefinition Height="1*"/>
             <RowDefinition Height="2*"/>
+            <RowDefinition Height="4*"/>
+            <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
@@ -19,5 +20,8 @@
         </Grid.ColumnDefinitions>
         <Button Content="Start" Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Click="Yomiage"/>
         <Button Content="Config" Grid.Row="1" Grid.Column="3" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Click="Yomiage"/>
+        <Viewbox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Left">
+            <Label Name="message" Content="message" Foreground="GhostWhite"/>
+        </Viewbox>
     </Grid>
 </Window>
