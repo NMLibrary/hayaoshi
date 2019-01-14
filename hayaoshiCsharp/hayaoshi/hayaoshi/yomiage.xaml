@@ -98,7 +98,7 @@
             <Label Name="message" Content="message" Foreground="GhostWhite"/>
         </Viewbox>
 
-        <Button Name="question" Content="読み上げ" Grid.Row="6" Grid.Column="2" Click="questionClick"/>
+        <Button Name="question" Content="読み上げ" Grid.Row="6" Grid.Column="2" Click="QuestionClick"/>
         <Button Name="undo" Content="Undo" Grid.Row="6" Grid.Column="4" Click="UndoClick"/>
         <Button Name="through" Content="Through" Grid.Row="6" Grid.Column="6" Click="ThroughClick"/>
     </Grid>

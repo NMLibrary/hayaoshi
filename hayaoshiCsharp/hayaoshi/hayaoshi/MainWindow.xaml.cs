@@ -85,7 +85,9 @@ namespace hayaoshi
                         break;
                     }
                     if (button >= 100) {
-                        System.Windows.Forms.SendKeys.SendWait(joystick.JoystickKey.ToString());
+                        if (joystick.JoystickKey != null) {
+                            System.Windows.Forms.SendKeys.SendWait(joystick.JoystickKey.ToString());
+                        }
                         pushed = true;
                     }
                 }
@@ -105,6 +107,11 @@ namespace hayaoshi
 
         private void Yomiage(object sender, RoutedEventArgs e)
         {
+            Hayaoshi child = new Hayaoshi(this);
+            child.Show();
+        }
+
+        private void KeyConfig(object sender, RoutedEventArgs e) {
             Hayaoshi child = new Hayaoshi(this);
             child.Show();
         }

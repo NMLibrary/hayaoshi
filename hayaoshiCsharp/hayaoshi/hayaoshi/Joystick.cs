@@ -12,7 +12,7 @@ namespace hayaoshi
     public class Joystick
     {
         public Device Device { get; set; }
-        public SysKey JoystickKey { get; set; }
+        public SysKey? JoystickKey { get; set; }
         public bool JoystickPushed { get; set; }
     }
 }

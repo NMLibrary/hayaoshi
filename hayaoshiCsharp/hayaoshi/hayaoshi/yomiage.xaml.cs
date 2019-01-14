@@ -103,7 +103,7 @@ namespace hayaoshi
                         pushed = true;
                         through.Content = "無効";
                         pushPlayer = players[i];
-                        playSound(sounds["button"]);
+                        PlaySound(sounds["button"]);
                         message.Content = "正解ならばoを、不正解ならばxを押してください";
                     }
                 }
@@ -116,7 +116,7 @@ namespace hayaoshi
                     pushPlayer.LightLabel.Content = "";
                     if (e.Key == SysKey.O)
                     {
-                        playSound(sounds["correct"]);
+                        PlaySound(sounds["correct"]);
                         pushPlayer.Point++;
                         pushPlayer.PointLabel.Content = pushPlayer.Point.ToString();
                         history.Add((pushPlayer, JudgeStatus.Point));
@@ -124,7 +124,7 @@ namespace hayaoshi
                         questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
                     } else
                     {
-                        playSound(sounds["wrong"]);
+                        PlaySound(sounds["wrong"]);
                         pushPlayer.Mistake++;
                         pushPlayer.MistakeLabel.Content = pushPlayer.Mistake.ToString();
                         history.Add((pushPlayer, JudgeStatus.Mistake));
@@ -160,7 +160,7 @@ namespace hayaoshi
                     {
 
                     }
-                    stopSound();
+                    StopSound();
                     questionNumber--;
                     questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
                 }
@@ -178,19 +178,19 @@ namespace hayaoshi
                 message.Content = "出題中";
                 through.Content = "through";
             }
-            stopSound();
+            StopSound();
             questionNumber++;
             questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
             pushed = false;
             pushPlayer.LightLabel.Content = "";
         }
 
-        private void questionClick(object sender, RoutedEventArgs e) {
+        private void QuestionClick(object sender, RoutedEventArgs e) {
             if (!pushed) {
-                stopSound();
+                StopSound();
                 int len = questionSounds.Length;
                 if (questionNumber < len) {
-                    playSound(questionSounds[questionNumber]);
+                    PlaySound(questionSounds[questionNumber]);
                 } else {
                     message.Content = "もう問題がありません";
                 }
@@ -202,12 +202,12 @@ namespace hayaoshi
             grid.Focus();
         }
 
-        private void playSound(string path) {
-            stopSound();
+        private void PlaySound(string path) {
+            StopSound();
             Microsoft.SmallBasic.Library.Sound.Play(path);
         }
 
-        private void stopSound() {
+        private void StopSound() {
             foreach (string item in sounds.Values) {
                 Microsoft.SmallBasic.Library.Sound.Stop(item);
             }
