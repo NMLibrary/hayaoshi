@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:hayaoshi"
         mc:Ignorable="d"
         Title="yomiage" Height="600" Width="800">
-    <Grid x:Name="grid" Focusable="True" KeyDown="KeyPush" Loaded="GridLoaded" Background="#111111">
+    <Grid x:Name="grid" Focusable="True" KeyDown="KeyPush" Loaded="GridLoaded">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="6*"/>

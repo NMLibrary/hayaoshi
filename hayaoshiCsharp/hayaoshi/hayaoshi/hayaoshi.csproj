@@ -68,12 +68,20 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="BaseData.cs" />
     <Compile Include="Joystick.cs" />
     <Compile Include="JudgeStatus.cs" />
+    <Compile Include="KeyConfig.xaml.cs">
+      <DependentUpon>KeyConfig.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Player.cs" />
     <Compile Include="yomiage.xaml.cs">
       <DependentUpon>yomiage.xaml</DependentUpon>
     </Compile>
+    <Page Include="KeyConfig.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

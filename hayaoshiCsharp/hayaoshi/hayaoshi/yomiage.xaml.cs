@@ -48,10 +48,14 @@ namespace hayaoshi
 
         Joystick[] Joysticks;
 
-
-        public Hayaoshi(MainWindow mainWindow)
+        public Hayaoshi(BaseData baseData)
         {
             InitializeComponent();
+
+            MakeWindow();
+
+            playerSize = baseData.PlayerNumber;
+
             string[] names = new string[4] { "ジェフ・ベゾス", "ビル・ゲイツ", "Warren Buffett", "孫 正義" };
             Label[] nameLabels = new Label[4] { name0, name1, name2, name3 };
             Label[] keyLabels = new Label[4] { key0, key1, key2, key3 };
@@ -88,7 +92,11 @@ namespace hayaoshi
 
             questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
 
-            Joysticks = mainWindow.Joysticks;
+            Joysticks = baseData.Joysticks;
+        }
+
+        private void MakeWindow() {
+            Background = BaseData.backGroundColor;
         }
 
         private void KeyPush(object sender, KeyEventArgs e)
