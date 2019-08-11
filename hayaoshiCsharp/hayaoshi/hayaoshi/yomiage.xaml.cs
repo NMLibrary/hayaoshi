@@ -66,8 +66,12 @@ namespace hayaoshi
             players = new Player[playerSize];
             for (int i = 0; i < playerSize; i++)
             {
-                players[i] = new Player();
-                players[i].Name = names[i];
+                if (baseData.PlayerDic.ContainsKey(i)) {
+                    players[i] = baseData.PlayerDic[i];
+                } else {
+                    players[i] = new Player();
+                    players[i].Name = "No Name";
+                }
                 players[i].NameLabel = nameLabels[i];
                 players[i].KeyLabel = keyLabels[i];
                 players[i].LightLabel = lightlabels[i];
