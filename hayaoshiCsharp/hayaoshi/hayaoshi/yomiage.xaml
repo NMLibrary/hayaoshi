@@ -6,100 +6,41 @@
         xmlns:local="clr-namespace:hayaoshi"
         mc:Ignorable="d"
         Title="yomiage" Height="600" Width="800">
-    <Grid x:Name="grid" Focusable="True" KeyDown="KeyPush" Loaded="GridLoaded">
+    <Grid x:Name="baseGrid" Focusable="True" KeyDown="KeyPush" Loaded="GridLoaded">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="6*"/>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="1*"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="7*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <Viewbox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="8" HorizontalAlignment="Right">
-            <Label Name="questionNumberLabel" Content="0問目" Foreground="GhostWhite"/>
-        </Viewbox>
-        
-        <Viewbox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-            <Label Name="name0" Content="!" Foreground="Yellow"/>
-        </Viewbox>
-        <Viewbox Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2">
-            <Label Name="name1" Content="!" Foreground="Yellow"/>
-        </Viewbox>
-        <Viewbox Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="2">
-            <Label Name="name2" Content="!" Foreground="Yellow"/>
-        </Viewbox>
-        <Viewbox Grid.Row="1" Grid.Column="6" Grid.ColumnSpan="2">
-            <Label Name="name3" Content="!" Foreground="Yellow"/>
-        </Viewbox>
-        
-        <Viewbox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
-            <Label Name="push0" Content="!" Foreground="Yellow"/>
-        </Viewbox>
-        <Viewbox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2">
-            <Label Name="push1" Content="!" Foreground="Yellow"/>
-        </Viewbox>
-        <Viewbox Grid.Row="2" Grid.Column="4" Grid.ColumnSpan="2">
-            <Label Name="push2" Content="!" Foreground="Yellow"/>
-        </Viewbox>
-        <Viewbox Grid.Row="2" Grid.Column="6" Grid.ColumnSpan="2">
-            <Label Name="push3" Content="!" Foreground="Yellow"/>
-        </Viewbox>
-        
-        <Viewbox Grid.Row="3" Grid.Column="0">
-            <Label Name="point0" Content="0" Foreground="Red"/>
-        </Viewbox>
-        <Viewbox Grid.Row="3" Grid.Column="2">
-            <Label Name="point1" Content="0" Foreground="Red"/>
-        </Viewbox>
-        <Viewbox Grid.Row="3" Grid.Column="4">
-            <Label Name="point2" Content="0" Foreground="Red"/>
-        </Viewbox>
-        <Viewbox Grid.Row="3" Grid.Column="6">
-            <Label Name="point3" Content="0" Foreground="Red"/>
-        </Viewbox>
 
-        <Viewbox Grid.Row="3" Grid.Column="1">
-            <Label Name="miss0" Content="1" Foreground="CornflowerBlue"/>
-        </Viewbox>
-        <Viewbox Grid.Row="3" Grid.Column="3">
-            <Label Name="miss1" Content="1" Foreground="CornflowerBlue"/>
-        </Viewbox>
-        <Viewbox Grid.Row="3" Grid.Column="5">
-            <Label Name="miss2" Content="1" Foreground="CornflowerBlue"/>
-        </Viewbox>
-        <Viewbox Grid.Row="3" Grid.Column="7">
-            <Label Name="miss3" Content="1" Foreground="CornflowerBlue"/>
-        </Viewbox>
-        
-        <Viewbox Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2">
-            <Label Name="key0" Content="2" Foreground="Red"/>
-        </Viewbox>
-        <Viewbox Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2">
-            <Label Name="key1" Content="T" Foreground="Green"/>
-        </Viewbox>
-        <Viewbox Grid.Row="4" Grid.Column="4" Grid.ColumnSpan="2">
-            <Label Name="key2" Content="K" Foreground="White"/>
-        </Viewbox>
-        <Viewbox Grid.Row="4" Grid.Column="6" Grid.ColumnSpan="2">
-            <Label Name="key3" Content="_" Foreground="CornflowerBlue"/>
-        </Viewbox>
-        <Viewbox Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="8" HorizontalAlignment="Left">
-            <Label Name="message" Content="message" Foreground="GhostWhite"/>
-        </Viewbox>
+        <Grid x:Name="topGrid" Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Viewbox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right">
+                <Label Name="questionNumberLabel" Content="0問目" Foreground="GhostWhite"/>
+            </Viewbox>
+        </Grid>
 
-        <Button Name="question" Content="読み上げ" Grid.Row="6" Grid.Column="2" Click="QuestionClick"/>
-        <Button Name="undo" Content="Undo" Grid.Row="6" Grid.Column="4" Click="UndoClick"/>
-        <Button Name="through" Content="Through" Grid.Row="6" Grid.Column="6" Click="ThroughClick"/>
+        <Grid x:Name="operationGrid" Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <!--<Button Name="question" Content="読み上げ" Grid.Row="0" Grid.Column="0" Click="QuestionClick"/>
+            <Button Name="undo" Content="Undo" Grid.Row="0" Grid.Column="2" Click="UndoClick"/>
+            <Button Name="through" Content="Through" Grid.Row="0" Grid.Column="4" Click="ThroughClick"/>-->
+        </Grid>
+
+        <Grid x:Name="messageGrid" Grid.Row="3">
+            <Viewbox Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left">
+                <Label Name="message" Content="出題中" Foreground="GhostWhite"/>
+            </Viewbox>
+        </Grid>
     </Grid>
 </Window>

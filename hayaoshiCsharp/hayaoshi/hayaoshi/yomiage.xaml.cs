@@ -13,22 +13,21 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using Microsoft.DirectX.DirectInput;
-using DXKey = Microsoft.DirectX.DirectInput.Key;
+//using Microsoft.DirectX.DirectInput;
+//using DXKey = Microsoft.DirectX.DirectInput.Key;
 using SysKey = System.Windows.Input.Key;
 
-namespace hayaoshi
-{
+namespace hayaoshi {
     /// <summary>
     /// Window1.xaml の相互作用ロジック
     /// </summary>
     /// 
-    public partial class Hayaoshi : Window
-    {
+    public partial class Hayaoshi : Window {
+        BaseData baseData;
+
         bool pushed = false;
-        SysKey[] judgingButton;
         Player[] players;
-        int playerSize = 4;
+        int playerSize;
         Player pushPlayer;
         List<(Player player, JudgeStatus judge)> history = new List<(Player player, JudgeStatus judge)>();
         int questionNumber = 0;
@@ -39,168 +38,271 @@ namespace hayaoshi
             {"wrong", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\wrongBuzzer2.wav" },
             {"buzzer", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\buzzer.wav" }
         };
-        string[] questionSounds =  {
-            "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\開演ブザー.wav",
-            "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ1.m4a",
-            "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ2.m4a",
-            "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\クイズ3.m4a"
-        };
+        List<string> questionSounds;
 
         Joystick[] Joysticks;
 
-        public Hayaoshi(BaseData baseData)
-        {
+        Dictionary<string, Label> locLabelDic;
+        Dictionary<string, Button> locButtonDic;
+
+        public Hayaoshi(BaseData baseData) {
             InitializeComponent();
+            this.baseData = baseData;
+            playerSize = baseData.PlayerNumber;
+            locLabelDic = new Dictionary<string, Label>();
+            locButtonDic = new Dictionary<string, Button>();
+            questionSounds = baseData.QuestionSounds;
 
             MakeWindow();
 
-            playerSize = baseData.PlayerNumber;
-
-            string[] names = new string[4] { "ジェフ・ベゾス", "ビル・ゲイツ", "Warren Buffett", "孫 正義" };
-            Label[] nameLabels = new Label[4] { name0, name1, name2, name3 };
-            Label[] keyLabels = new Label[4] { key0, key1, key2, key3 };
-            Label[] lightlabels = new Label[4] { push0, push1, push2, push3 };
-            SysKey[] buttons = new SysKey[4] { SysKey.D2, SysKey.T, SysKey.K, SysKey.OemBackslash };
-            Label[] pointLabels = new Label[4] { point0, point1, point2, point3 };
-            Label[] missLabels = new Label[4] { miss0, miss1, miss2, miss3 };
             players = new Player[playerSize];
-            for (int i = 0; i < playerSize; i++)
-            {
-                if (baseData.PlayerDic.ContainsKey(i)) {
-                    players[i] = baseData.PlayerDic[i];
+            for (int i = 0; i < playerSize; i++) {
+                players[i] = new Player();
+                if (baseData.PlayerNameDic.ContainsKey(i)) {
+                    players[i].Name = baseData.PlayerNameDic[i];
                 } else {
-                    players[i] = new Player();
                     players[i].Name = "No Name";
                 }
-                players[i].NameLabel = nameLabels[i];
-                players[i].KeyLabel = keyLabels[i];
-                players[i].LightLabel = lightlabels[i];
+                string name = "name" + i.ToString();
+                players[i].NameLabel = locLabelDic["name" + i.ToString()];
+                players[i].KeyLabel = locLabelDic["key" + i.ToString()];
+                players[i].LightLabel = locLabelDic["light" + i.ToString()];
                 players[i].Point = 0;
                 players[i].Mistake = 0;
-                players[i].PointLabel = pointLabels[i];
-                players[i].MistakeLabel = missLabels[i];
-                players[i].Button = buttons[i];
+                players[i].PointLabel = locLabelDic["point" + i.ToString()];
+                players[i].MistakeLabel = locLabelDic["miss" + i.ToString()];
+                if (baseData.NumToKeyDic.ContainsKey(i)) {
+                    players[i].Button = baseData.NumToKeyDic[i];
+                } else {
+                    players[i].Button = null;
+                }
             }
 
-            push0.Content = "aa";
-            pushed = false;
-            judgingButton = new SysKey[] {SysKey.O, SysKey.X};
-            
-            for (int i = 0; i < playerSize; i++)
-            {
+            for (int i = 0; i < playerSize; i++) {
                 players[i].NameLabel.Content = players[i].Name;
                 players[i].LightLabel.Content = "";
                 players[i].PointLabel.Content = players[i].Point.ToString();
                 players[i].MistakeLabel.Content = players[i].Mistake.ToString();
+                if (players[i].Button != null) {
+                    players[i].KeyLabel.Content = players[i].Button.ToString();
+                }
             }
 
-            questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
+            pushed = false;
+
+            Reset();
 
             Joysticks = baseData.Joysticks;
         }
 
         private void MakeWindow() {
             Background = BaseData.backGroundColor;
+            MakePlayerGrid();
+            Button readButton = new Button();
+            BaseData.ButtonAdd(ref operationGrid, ref readButton, QuestionClick, "", "読み上げ", 0, 0);
+            locButtonDic["read"] = readButton;
+            Button undoButton = new Button();
+            BaseData.ButtonAdd(ref operationGrid, ref undoButton, UndoClick, "", "Undo", 0, 2);
+            locButtonDic["undo"] = undoButton;
+            Button throughButton = new Button();
+            BaseData.ButtonAdd(ref operationGrid, ref throughButton, ThroughClick, "", "Through", 0, 4);
+            locButtonDic["through"] = throughButton;
         }
 
-        private void KeyPush(object sender, KeyEventArgs e)
-        {
-            for (int i = 0; i < playerSize; i++)
-            {
-                if (e.Key == players[i].Button)
-                {
-                    if (!pushed)
-                    {
+        private void MakePlayerGrid() {
+            Grid playerGrid = new Grid();
+            playerGrid.SetValue(Grid.RowProperty, 1);
+            playerGrid.SetValue(Grid.ColumnProperty, 0);
+            baseGrid.Children.Add(playerGrid);
+
+            double[] playerGridHeights = new double[4] { 2.0, 2.0, 1.0, 1.0 };
+            for (int i = 0; i < playerGridHeights.Length; i++) {
+                RowDefinition row = new RowDefinition();
+                row.Height = new GridLength(playerGridHeights[i], GridUnitType.Star);
+                playerGrid.RowDefinitions.Add(row);
+            }
+            for (int i = 0; i < baseData.PlayerNumber; i++) {
+                ColumnDefinition column = new ColumnDefinition();
+                column.Width = new GridLength(1.0, GridUnitType.Star);
+                playerGrid.ColumnDefinitions.Add(column);
+            }
+
+            for (int i = 0; i < baseData.PlayerNumber; i++) {
+                Label nameLabel = new Label();
+                BaseData.LabelAdd(ref playerGrid, ref nameLabel, "", 0, i, "name" + i.ToString(),
+                    1, 1, null, BaseData.nameAndLightColor);
+                locLabelDic["name" + i.ToString()] = nameLabel;
+                Label lightLabel = new Label();
+                BaseData.LabelAdd(ref playerGrid, ref lightLabel, "", 1, i, "light" + i.ToString(),
+                    1, 1, null, BaseData.nameAndLightColor);
+                locLabelDic["light" + i.ToString()] = lightLabel;
+
+                Grid pointAndMissGrid = new Grid();
+                playerGrid.Children.Add(pointAndMissGrid);
+                pointAndMissGrid.SetValue(Grid.RowProperty, 2);
+                pointAndMissGrid.SetValue(Grid.ColumnProperty, i);
+                for (int j = 0; j < 2; j++) {
+                    ColumnDefinition column = new ColumnDefinition();
+                    column.Width = new GridLength(1.0, GridUnitType.Star);
+                    pointAndMissGrid.ColumnDefinitions.Add(column);
+                }
+                Label pointLabel = new Label();
+                BaseData.LabelAdd(ref pointAndMissGrid, ref pointLabel, "", 0, 0, "point" + i.ToString(),
+                    1, 1, null, BaseData.pointColor);
+                locLabelDic["point" + i.ToString()] = pointLabel;
+                Label missLabel = new Label();
+                BaseData.LabelAdd(ref pointAndMissGrid, ref missLabel, "", 0, 1, "miss" + i.ToString(),
+                    1, 1, null, BaseData.mistakeColor);
+                locLabelDic["miss" + i.ToString()] = missLabel;
+
+                Label keyLabel = new Label();
+                BaseData.LabelAdd(ref playerGrid, ref keyLabel, "", 3, i, "key" + i.ToString(),
+                    1, 1, null, BaseData.ColorGradation(i, baseData.PlayerNumber));
+                locLabelDic["key" + i.ToString()] = keyLabel;
+            }
+        }
+
+        private void KeyPush(object sender, KeyEventArgs e) {
+            for (int i = 0; i < playerSize; i++) {
+                if (e.Key == players[i].Button && CanUseButton(players[i])) {
+                    if (!pushed) {
                         players[i].LightLabel.Content = "!";
                         pushed = true;
-                        through.Content = "無効";
+                        Button throughbutton = locButtonDic["through"];
+                        BaseData.ChangeButtonContent(ref throughbutton, "無効");
                         pushPlayer = players[i];
                         PlaySound(sounds["button"]);
                         message.Content = "正解ならばoを、不正解ならばxを押してください";
                     }
                 }
             }
-            if (judgingButton.Contains(e.Key))
-            {
-                if (pushed)
-                {
+            if (BaseData.judgingButton.ContainsValue(e.Key)) {
+                if (pushed) {
                     pushed = false;
                     pushPlayer.LightLabel.Content = "";
-                    if (e.Key == SysKey.O)
-                    {
+                    if (e.Key == BaseData.judgingButton["ok"]) {
                         PlaySound(sounds["correct"]);
-                        pushPlayer.Point++;
-                        pushPlayer.PointLabel.Content = pushPlayer.Point.ToString();
                         history.Add((pushPlayer, JudgeStatus.Point));
-                        questionNumber++;
-                        questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
-                    } else
-                    {
+                        Correct(pushPlayer);
+                    } else {
                         PlaySound(sounds["wrong"]);
-                        pushPlayer.Mistake++;
-                        pushPlayer.MistakeLabel.Content = pushPlayer.Mistake.ToString();
                         history.Add((pushPlayer, JudgeStatus.Mistake));
-                        questionNumber++;
-                        questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
+                        Wrong(pushPlayer);
                     }
                     message.Content = "出題中";
-                    through.Content = "through";
+                    Button throughbutton = locButtonDic["through"];
+                    BaseData.ChangeButtonContent(ref throughbutton, "through");
                 }
             }
         }
 
-        private void UndoClick(object sender, RoutedEventArgs e)
-        {
-            if (!pushed)
-            {
-                if (history.Count > 0)
-                {
-                    (Player player, JudgeStatus judge) latest = history[history.Count - 1];
-                    history.RemoveAt(history.Count - 1);
-                    if (latest.judge == JudgeStatus.Point)
-                    {
-                        latest.player.Point--;
-                        latest.player.PointLabel.Content = latest.player.Point.ToString();
-                    } else if (latest.judge == JudgeStatus.Mistake)
-                    {
-                        latest.player.Mistake--;
-                        latest.player.PointLabel.Content = latest.player.Point.ToString();
-                    } else if (latest.judge == JudgeStatus.Through)
-                    {
-                        
-                    } else if (latest.judge == JudgeStatus.Invalid)
-                    {
-
-                    }
-                    StopSound();
-                    questionNumber--;
-                    questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
-                }
+        private bool CanUseButton(Player player) {
+            bool result = true;
+            if (player.Win) {
+                result = false;
             }
+            if (player.Lose) {
+                result = false;
+            }
+            return result;
         }
 
-        private void ThroughClick(object sender, RoutedEventArgs e)
-        {
-            if (!pushed)
-            {
+        private void Correct(Player player) {
+            player.Point++;
+            player.PointLabel.Content = player.Point.ToString();
+            if (player.Point == baseData.WinPoints) {
+                player.Win = true;
+                player.PointLabel.Background = BaseData.winColor;
+                player.NameLabel.Background = BaseData.winColor;
+            }
+            questionNumber++;
+            questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
+        }
+
+        private void Wrong(Player player) {
+            player.Mistake++;
+            player.MistakeLabel.Content = player.Mistake.ToString();
+            if (player.Mistake == baseData.LoseMistakes) {
+                player.Lose = true;
+                player.MistakeLabel.Background = BaseData.loseColor;
+                player.NameLabel.Background = BaseData.loseColor;
+            }
+            questionNumber++;
+            questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
+        }
+
+        private void ThroughClick(object sender, RoutedEventArgs e) {
+            if (!pushed) {
                 history.Add((throughPlayer, JudgeStatus.Through));
-            } else
-            {
+                Through();
+            } else {
                 history.Add((throughPlayer, JudgeStatus.Invalid));
+                Invalid();
                 message.Content = "出題中";
-                through.Content = "through";
+                Button throughButton = locButtonDic["through"];
+                BaseData.ChangeButtonContent(ref throughButton, "through");
+                pushPlayer.LightLabel.Content = "";
             }
             StopSound();
+        }
+
+        private void Through() {
             questionNumber++;
             questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
             pushed = false;
-            pushPlayer.LightLabel.Content = "";
+        }
+
+        private void Invalid() {
+            questionNumber++;
+            questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
+            pushed = false;
+        }
+
+        private void UndoClick(object sender, RoutedEventArgs e) {
+            if (!pushed) {
+                if (history.Count > 0) {
+                    history.RemoveAt(history.Count - 1);
+                    StopSound();
+                    Reset();
+                    foreach ((Player player, JudgeStatus judge) in history) {
+                        if (judge == JudgeStatus.Point) {
+                            Correct(player);
+                        } else if (judge == JudgeStatus.Mistake) {
+                            Wrong(player);
+                        } else if (judge == JudgeStatus.Through) {
+                            Through();
+                        } else if (judge == JudgeStatus.Invalid) {
+                            Invalid();
+                        }
+                    }
+                }
+            }
+        }
+
+        private void Reset() {
+            for (int i = 0; i < playerSize; i++) {
+                players[i].Point = 0;
+                players[i].Mistake = 0;
+                players[i].PointLabel.Content = "0";
+                players[i].MistakeLabel.Content = "0";
+                players[i].Win = false;
+                players[i].Lose = false;
+                //players[i].NameLabel.Foreground = BaseData.nameAndLightColor;
+                //players[i].PointLabel.Foreground = BaseData.pointColor;
+                //players[i].MistakeLabel.Foreground = BaseData.mistakeColor;
+                players[i].NameLabel.Background = Brushes.Transparent;
+                players[i].PointLabel.Background = Brushes.Transparent;
+                players[i].MistakeLabel.Background = Brushes.Transparent;
+            }
+            questionNumber = 0;
+            questionNumberLabel.Content = "1問目";
+            message.Content = "出題中";
         }
 
         private void QuestionClick(object sender, RoutedEventArgs e) {
             if (!pushed) {
                 StopSound();
-                int len = questionSounds.Length;
+                int len = questionSounds.Count();
                 if (questionNumber < len) {
                     PlaySound(questionSounds[questionNumber]);
                 } else {
@@ -209,9 +311,8 @@ namespace hayaoshi
             }
         }
 
-        private void GridLoaded(object sender, RoutedEventArgs e)
-        {
-            grid.Focus();
+        private void GridLoaded(object sender, RoutedEventArgs e) {
+            baseGrid.Focus();
         }
 
         private void PlaySound(string path) {

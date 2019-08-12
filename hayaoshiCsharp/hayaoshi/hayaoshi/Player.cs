@@ -18,6 +18,8 @@ namespace hayaoshi
         public int Mistake { get; set; } = 0;
         public Label PointLabel { get; set; }
         public Label MistakeLabel { get; set; }
-        public Key Button { get; set; }
+        public Key? Button { get; set; }
+        public bool Win { get; set; }
+        public bool Lose { get; set; }
     }
 }
