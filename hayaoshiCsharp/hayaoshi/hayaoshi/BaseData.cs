@@ -41,12 +41,8 @@ namespace hayaoshi {
         public int WinPoints { get; set; } = 7;
         public int LoseMistakes { get; set; } = 3;
 
-        public List<string> QuestionSounds { get; set; } = new List<string>() {
-            //"C:\\Users\\Tsurusaki\\Git\\hayaoshi\\quizzes\\開演ブザー.wav",
-            //"C:\\Users\\Tsurusaki\\Git\\hayaoshi\\quizzes\\クイズ1.m4a",
-            //"C:\\Users\\Tsurusaki\\Git\\hayaoshi\\quizzes\\クイズ2.m4a",
-            //"C:\\Users\\Tsurusaki\\Git\\hayaoshi\\quizzes\\クイズ3.m4a"
-        };
+        public List<string> QuestionSounds { get; set; } = new List<string>();
+        private Random random = new Random();
 
         public void JoystickSetup() {
             JoyToNumDic = new Dictionary<Joystick, int>();
@@ -102,8 +98,17 @@ namespace hayaoshi {
 
         private void TimerTick(object sender, EventArgs e) {
             //DispatcherTimer timer = sender as DispatcherTimer;
+            List<SysKey> pushedJoyKeys = new List<SysKey>();
             foreach (Joystick joystick in Joysticks) {
-                joystick.GetJoystickState();
+                bool pushed = joystick.GetJoystickState();
+                if (pushed && joystick.JoystickKey != null) {
+                    pushedJoyKeys.Add((SysKey)joystick.JoystickKey);
+                }
+            }
+            int len = pushedJoyKeys.Count();
+            if (len > 0) {
+                int number = random.Next(len);
+                System.Windows.Forms.SendKeys.SendWait(pushedJoyKeys[number].ToString());
             }
         }
 

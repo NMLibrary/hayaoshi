@@ -15,10 +15,11 @@ namespace hayaoshi
         public SysKey? JoystickKey { get; set; }
         public bool JoystickPushed { get; set; }
 
-        public void GetJoystickState() {
+        public bool GetJoystickState() {
+            bool result = false;
             // デバイス未決定時は何もしない
             if (Device == null) {
-                return;
+                return false;
             }
 
             try {
@@ -34,7 +35,8 @@ namespace hayaoshi
                     }
                     if (button >= 100) {
                         if (JoystickKey != null && !JoystickPushed) {
-                            System.Windows.Forms.SendKeys.SendWait(JoystickKey.ToString());
+                            //System.Windows.Forms.SendKeys.SendWait(JoystickKey.ToString());
+                            result = true;
                         }
                         pushed = true;
                     }
@@ -44,6 +46,7 @@ namespace hayaoshi
             } catch (Exception ex) {
                 Console.WriteLine(ex.Message + Environment.NewLine);
             }
+            return result;
         }
     }
 }

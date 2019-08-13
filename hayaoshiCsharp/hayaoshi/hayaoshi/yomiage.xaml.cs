@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Path = System.IO.Path;
 //using Microsoft.DirectX.DirectInput;
 //using DXKey = Microsoft.DirectX.DirectInput.Key;
 using SysKey = System.Windows.Input.Key;
@@ -32,12 +34,9 @@ namespace hayaoshi {
         List<(Player player, JudgeStatus judge)> history = new List<(Player player, JudgeStatus judge)>();
         int questionNumber = 0;
         Player throughPlayer;
-        Dictionary<string, string> sounds = new Dictionary<string, string>() {
-            {"button", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\buttonSound6.wav"},
-            {"correct", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\correctSound6.wav"},
-            {"wrong", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\wrongBuzzer2.wav" },
-            {"buzzer", "C:\\Users\\Tsurusaki\\Git\\hayaoshi\\buzzer.wav" }
-        };
+        string executingPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+        string soundDirectory;
+        Dictionary<string, string> sounds;
         List<string> questionSounds;
 
         Joystick[] Joysticks;
@@ -54,6 +53,14 @@ namespace hayaoshi {
             questionSounds = baseData.QuestionSounds;
 
             MakeWindow();
+
+            soundDirectory = Path.GetDirectoryName(executingPath) + "\\sounds";
+            sounds = new Dictionary<string, string>() {
+                ["button"] = soundDirectory + "\\buttonSound6.wav",
+                ["correct"] = soundDirectory + "\\correctSound6.wav",
+                ["wrong"] = soundDirectory + "\\wrongBuzzer2.wav",
+                ["buzzer"] = soundDirectory + "\\buzzer.wav"
+            };
 
             players = new Player[playerSize];
             for (int i = 0; i < playerSize; i++) {
