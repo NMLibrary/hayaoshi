@@ -370,9 +370,6 @@ namespace hayaoshi {
                     baseData.QuestionSounds = baseData.QuestionSounds.Concat(files).ToList();
                     locLabelDic["message"].Content = "問題を追加しました。現在" + baseData.QuestionSounds.Count().ToString()
                         + "問入っています";
-                    foreach (string s in files) {
-                        Console.WriteLine(s);
-                    }
                     //foreach (string name in dialog.FileNames) {
                     //    Console.WriteLine(name);
                     //}
@@ -384,9 +381,10 @@ namespace hayaoshi {
         private List<string> ReadFiles(String sourceDir) {
             string[] patterns = { ".wav", ".m4a" };
             string[] rawFiles = Directory.GetFiles(sourceDir, "*.*");
-            IEnumerable<string> filteredFiles = rawFiles.Where(file => patterns.Any(pattern => file.ToLower().EndsWith(pattern)));
+            List<string> filteredFiles = rawFiles.Where(file => patterns.Any(pattern => file.ToLower().EndsWith(pattern))).ToList();
 
-            return filteredFiles.ToList();
+            filteredFiles.Sort();
+            return filteredFiles;
         }
     }
 }
