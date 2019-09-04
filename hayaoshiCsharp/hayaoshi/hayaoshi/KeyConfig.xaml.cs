@@ -94,15 +94,7 @@ namespace hayaoshi {
             BaseData.ButtonAdd(ref cancelGrid, ref cancelButton, CancelClick, "cancelButton",
                 "cancel", 0, 4);
 
-            Button controllerLoadButton = new Button();
-            BaseData.ButtonAdd(ref loadGrid, ref controllerLoadButton, LoadController,
-                "controllerLoadButton", "ジョイスティックの初期化", 0, 3);
-            Button questionLoadButton = new Button();
-            BaseData.ButtonAdd(ref loadGrid, ref questionLoadButton, LoadFile, "questionLoadButton",
-                "問題のロード", 0, 1);
-            Button questionClearButton = new Button();
-            BaseData.ButtonAdd(ref loadGrid, ref questionClearButton, QuestionSoundsClear, "questionClearButton",
-                "問題のリセット", 0, 4);
+            MakeLoadGrid();
 
             Label messageLabel = new Label();
             BaseData.LabelAdd(ref baseGrid, ref messageLabel, messageDic["base"], 4, 0);
@@ -185,6 +177,18 @@ namespace hayaoshi {
                 BaseData.TextBoxAdd(ref configGrid, ref playerNameTextBoxes[i], TextBoxChanged,
                     "playerNameTextBox" + i.ToString(), playerNameContent, 3, i + 1);
             }
+        }
+
+        private void MakeLoadGrid() {
+            Button controllerLoadButton = new Button();
+            BaseData.ButtonAdd(ref loadGrid, ref controllerLoadButton, LoadController,
+                "controllerLoadButton", "ジョイスティックの初期化", 0, 3);
+            Button questionLoadButton = new Button();
+            BaseData.ButtonAdd(ref loadGrid, ref questionLoadButton, LoadFile, "questionLoadButton",
+                "問題のロード", 0, 1);
+            Button questionClearButton = new Button();
+            BaseData.ButtonAdd(ref loadGrid, ref questionClearButton, QuestionSoundsClear, "questionClearButton",
+                "問題のリセット", 0, 4);
         }
 
         private void TextBoxChanged(object sender, TextChangedEventArgs e) {
@@ -356,7 +360,7 @@ namespace hayaoshi {
             }
         }
 
-        //問題フォルダの選択
+        //音声用問題フォルダの選択
         private void LoadFile(object sender, RoutedEventArgs e) {
             if (configIndex == -1) {
                 CommonOpenFileDialog dialog = new CommonOpenFileDialog();
@@ -368,7 +372,7 @@ namespace hayaoshi {
                     Console.WriteLine(dialog.FileName);
                     List<string> files = ReadFiles(dialog.FileName);
                     baseData.QuestionSounds = baseData.QuestionSounds.Concat(files).ToList();
-                    locLabelDic["message"].Content = "問題を追加しました。現在" + baseData.QuestionSounds.Count().ToString()
+                    locLabelDic["message"].Content = "問題の音声を追加しました。現在" + baseData.QuestionSounds.Count().ToString()
                         + "問入っています";
                     //foreach (string name in dialog.FileNames) {
                     //    Console.WriteLine(name);
@@ -385,6 +389,23 @@ namespace hayaoshi {
 
             filteredFiles.Sort();
             return filteredFiles;
+        }
+
+        //問題文の読み込み
+        private void LoadQuestionFile(object sender, RoutedEventArgs e) {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "問題ファイル(.xlsx)|*.xlsx";
+            bool? result = dialog.ShowDialog();
+            if (result == true) {
+                string fileName = dialog.FileName;
+                bool addResult = baseData.AddQuestions(fileName);
+                if (addResult) {
+                    locLabelDic["message"].Content = "表示用の問題文を追加しました。現在"
+                        + baseData.QuestionStrings.Count().ToString() + "問入っています";
+                } else {
+                    locLabelDic["message"].Content = "失敗。要再起動。";
+                }
+            }
         }
     }
 }

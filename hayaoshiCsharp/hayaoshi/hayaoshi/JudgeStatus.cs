@@ -10,4 +10,12 @@ namespace hayaoshi
     {
         Point, Mistake, Through, Invalid
     }
+
+    enum HayaoshiPhase {
+        Base, Yomiage, Push, YomiagePush
+    }
+
+    enum HayaoshiMode {
+        Check, Base, Endless
+    }
 }

@@ -11,6 +11,10 @@ using System.Windows.Threading;
 using Button = System.Windows.Controls.Button;
 using DXKey = Microsoft.DirectX.DirectInput.Key;
 using SysKey = System.Windows.Input.Key;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using FontFamily = System.Windows.Media.FontFamily;
+using System.IO;
 
 namespace hayaoshi {
 
@@ -42,6 +46,8 @@ namespace hayaoshi {
         public int LoseMistakes { get; set; } = 3;
 
         public List<string> QuestionSounds { get; set; } = new List<string>();
+        public List<(string question, string answer)> QuestionStrings { get; set; }
+            = new List<(string question, string answer)>();
         private Random random = new Random();
 
         public void JoystickSetup() {
@@ -282,6 +288,20 @@ namespace hayaoshi {
                 (byte)Math.Round(r1 * 255f),
                 (byte)Math.Round(g1 * 255f),
                 (byte)Math.Round(b1 * 255f));
+        }
+
+        public bool AddQuestions(string path) {
+            using (Stream fileStream = new FileStream(path, FileMode.Open)) {
+                IWorkbook workbook = new XSSFWorkbook(fileStream);
+                ISheet sheet = workbook.GetSheetAt(0);
+                for (int i = 1; i <= sheet.LastRowNum; i++) {
+                    IRow row = sheet.GetRow(i);
+                    string question = row.GetCell(1).ToString();
+                    string answer = row.GetCell(2).ToString();
+                    QuestionStrings.Add((question, answer));
+                }
+            }
+            return true;
         }
     } 
 }

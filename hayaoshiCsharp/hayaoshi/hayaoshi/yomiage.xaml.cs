@@ -27,22 +27,28 @@ namespace hayaoshi {
     public partial class Hayaoshi : Window {
         BaseData baseData;
 
-        bool pushed = false;
+        //bool pushed = false;
+        HayaoshiPhase phase = HayaoshiPhase.Base;
+        HayaoshiMode mode = HayaoshiMode.Base;
+
         Player[] players;
         int playerSize;
         Player pushPlayer;
-        List<(Player player, JudgeStatus judge)> history = new List<(Player player, JudgeStatus judge)>();
+        List<(HayaoshiMode mode, int questionNumber, Player player, JudgeStatus judge)> history
+            = new List<(HayaoshiMode mode, int questionNumber, Player player, JudgeStatus judge)>();
         int questionNumber = 0;
         Player throughPlayer;
         string executingPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
         string soundDirectory;
         Dictionary<string, string> sounds;
         List<string> questionSounds;
+        string playingQuestionSound = null;
 
         Joystick[] Joysticks;
 
         Dictionary<string, Label> locLabelDic;
         Dictionary<string, Button> locButtonDic;
+        Dictionary<string, RadioButton> locRadioDic;
 
         public Hayaoshi(BaseData baseData) {
             InitializeComponent();
@@ -50,6 +56,7 @@ namespace hayaoshi {
             playerSize = baseData.PlayerNumber;
             locLabelDic = new Dictionary<string, Label>();
             locButtonDic = new Dictionary<string, Button>();
+            locRadioDic = new Dictionary<string, RadioButton>();
             questionSounds = baseData.QuestionSounds;
 
             MakeWindow();
@@ -95,7 +102,8 @@ namespace hayaoshi {
                 }
             }
 
-            pushed = false;
+            phase = HayaoshiPhase.Base;
+            mode = HayaoshiMode.Base;
 
             Reset();
 
@@ -105,15 +113,8 @@ namespace hayaoshi {
         private void MakeWindow() {
             Background = BaseData.backGroundColor;
             MakePlayerGrid();
-            Button readButton = new Button();
-            BaseData.ButtonAdd(ref operationGrid, ref readButton, QuestionClick, "", "読み上げ", 0, 0);
-            locButtonDic["read"] = readButton;
-            Button undoButton = new Button();
-            BaseData.ButtonAdd(ref operationGrid, ref undoButton, UndoClick, "", "Undo", 0, 2);
-            locButtonDic["undo"] = undoButton;
-            Button throughButton = new Button();
-            BaseData.ButtonAdd(ref operationGrid, ref throughButton, ThroughClick, "", "Through", 0, 4);
-            locButtonDic["through"] = throughButton;
+            MakeOperationGrid();
+            MakeModeGrid();
         }
 
         private void MakePlayerGrid() {
@@ -169,12 +170,87 @@ namespace hayaoshi {
             }
         }
 
+        private void MakeOperationGrid() {
+            Button readButton = new Button();
+            BaseData.ButtonAdd(ref operationGrid, ref readButton, QuestionClick, "", "読み上げ", 0, 0);
+            locButtonDic["read"] = readButton;
+            Button undoButton = new Button();
+            BaseData.ButtonAdd(ref operationGrid, ref undoButton, UndoClick, "", "Undo", 0, 2);
+            locButtonDic["undo"] = undoButton;
+            Button throughButton = new Button();
+            BaseData.ButtonAdd(ref operationGrid, ref throughButton, ThroughClick, "", "Through", 0, 4);
+            locButtonDic["through"] = throughButton;
+        }
+
+        private void MakeModeGrid() {
+            RadioButton baseRadio = new RadioButton();
+            RadioButtonAdd(ref modeGrid, ref baseRadio, BaseMode, "", "通常", 0, 0);
+            locRadioDic["base"] = baseRadio;
+            RadioButton endlessRadio = new RadioButton();
+            RadioButtonAdd(ref modeGrid, ref endlessRadio, EndlessMode, "", "エンドレスチャンス", 0, 1);
+            locRadioDic["endless"] = endlessRadio;
+            RadioButton checkRadio = new RadioButton();
+            RadioButtonAdd(ref modeGrid, ref checkRadio, CheckMode, "", "ボタンチェック", 0, 2);
+            locRadioDic["check"] = checkRadio;
+            baseRadio.IsChecked = true;
+        }
+
+        private void RadioButtonAdd(ref Grid grid, ref RadioButton radio, RoutedEventHandler method,
+            string name, string content, int row, int column, int rowspan = 1, int columnspan = 1,
+            FontFamily font = null, SolidColorBrush color = null) {
+            //Viewbox box = new Viewbox();
+            //box.SetValue(Grid.RowProperty, row);
+            //box.SetValue(Grid.RowSpanProperty, rowspan);
+            //box.SetValue(Grid.ColumnProperty, column);
+            //box.SetValue(Grid.ColumnSpanProperty, columnspan);
+            radio.Click += method;
+            radio.Name = name;
+            radio.Content = content;
+            radio.SetValue(Grid.RowProperty, row);
+            radio.SetValue(Grid.ColumnProperty, column);
+            radio.SetValue(Grid.RowSpanProperty, rowspan);
+            radio.SetValue(Grid.ColumnSpanProperty, columnspan);
+            radio.GroupName = "mode";
+            radio.VerticalAlignment = VerticalAlignment.Center;
+            radio.HorizontalAlignment = HorizontalAlignment.Center;
+            //radio.FontSize = 25;
+            radio.RenderTransformOrigin = new Point(0.5, 0.5);
+            radio.RenderTransform = new ScaleTransform(1.8, 1.8);
+            if (font != null) {
+                radio.FontFamily = font;
+            }
+            if (color == null) {
+                radio.Foreground = BaseData.foreGroundColor;
+            } else {
+                radio.Foreground = color;
+            }
+            //box.Child = radio;
+            //grid.Children.Add(box);
+            grid.Children.Add(radio);
+        }
+
+        private void BaseMode(object sender, RoutedEventArgs e) {
+            mode = HayaoshiMode.Base;
+        }
+
+        private void CheckMode(object sender, RoutedEventArgs e) {
+            mode = HayaoshiMode.Check;
+        }
+
+        private void EndlessMode(object sender, RoutedEventArgs e) {
+            mode = HayaoshiMode.Endless;
+        }
+
         private void KeyPush(object sender, KeyEventArgs e) {
             for (int i = 0; i < playerSize; i++) {
                 if (e.Key == players[i].Button && CanUseButton(players[i])) {
-                    if (!pushed) {
+                    if (phase == HayaoshiPhase.Base || phase == HayaoshiPhase.Yomiage) {
                         players[i].LightLabel.Content = "!";
-                        pushed = true;
+                        if (phase == HayaoshiPhase.Base) {
+                            phase = HayaoshiPhase.Push;
+                        } else if (phase == HayaoshiPhase.Yomiage) {
+                            phase = HayaoshiPhase.YomiagePush;
+                        }
                         Button throughbutton = locButtonDic["through"];
                         BaseData.ChangeButtonContent(ref throughbutton, "無効");
                         pushPlayer = players[i];
@@ -184,21 +260,21 @@ namespace hayaoshi {
                 }
             }
             if (BaseData.judgingButton.ContainsValue(e.Key)) {
-                if (pushed) {
-                    pushed = false;
+                if (phase == HayaoshiPhase.Push || phase == HayaoshiPhase.YomiagePush) {
                     pushPlayer.LightLabel.Content = "";
                     if (e.Key == BaseData.judgingButton["ok"]) {
                         PlaySound(sounds["correct"]);
-                        history.Add((pushPlayer, JudgeStatus.Point));
+                        history.Add((mode, questionNumber, pushPlayer, JudgeStatus.Point));
                         Correct(pushPlayer);
                     } else {
                         PlaySound(sounds["wrong"]);
-                        history.Add((pushPlayer, JudgeStatus.Mistake));
+                        history.Add((mode, questionNumber, pushPlayer, JudgeStatus.Mistake));
                         Wrong(pushPlayer);
                     }
                     message.Content = "出題中";
                     Button throughbutton = locButtonDic["through"];
                     BaseData.ChangeButtonContent(ref throughbutton, "through");
+                    phase = HayaoshiPhase.Base;
                 }
             }
         }
@@ -215,35 +291,44 @@ namespace hayaoshi {
         }
 
         private void Correct(Player player) {
-            player.Point++;
-            player.PointLabel.Content = player.Point.ToString();
-            if (player.Point == baseData.WinPoints) {
-                player.Win = true;
-                player.PointLabel.Background = BaseData.winColor;
-                player.NameLabel.Background = BaseData.winColor;
+            if (mode != HayaoshiMode.Check) {
+                player.Point++;
+                player.PointLabel.Content = player.Point.ToString();
+                if (player.Point == baseData.WinPoints) {
+                    player.Win = true;
+                    player.PointLabel.Background = BaseData.winColor;
+                    player.NameLabel.Background = BaseData.winColor;
+                }
+                QuestionNumberAdd();
             }
-            questionNumber++;
-            questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
         }
 
         private void Wrong(Player player) {
-            player.Mistake++;
-            player.MistakeLabel.Content = player.Mistake.ToString();
-            if (player.Mistake == baseData.LoseMistakes) {
-                player.Lose = true;
-                player.MistakeLabel.Background = BaseData.loseColor;
-                player.NameLabel.Background = BaseData.loseColor;
+            if (mode != HayaoshiMode.Check) {
+                player.Mistake++;
+                player.MistakeLabel.Content = player.Mistake.ToString();
+                if (player.Mistake == baseData.LoseMistakes) {
+                    player.Lose = true;
+                    player.MistakeLabel.Background = BaseData.loseColor;
+                    player.NameLabel.Background = BaseData.loseColor;
+                }
+                if (mode == HayaoshiMode.Base) {
+                    QuestionNumberAdd();
+                }
             }
+        }
+
+        private void QuestionNumberAdd() {
             questionNumber++;
             questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
         }
 
         private void ThroughClick(object sender, RoutedEventArgs e) {
-            if (!pushed) {
-                history.Add((throughPlayer, JudgeStatus.Through));
+            if (phase == HayaoshiPhase.Base || phase == HayaoshiPhase.Yomiage) {
+                history.Add((mode, questionNumber, throughPlayer, JudgeStatus.Through));
                 Through();
             } else {
-                history.Add((throughPlayer, JudgeStatus.Invalid));
+                history.Add((mode,questionNumber, throughPlayer, JudgeStatus.Invalid));
                 Invalid();
                 message.Content = "出題中";
                 Button throughButton = locButtonDic["through"];
@@ -254,24 +339,21 @@ namespace hayaoshi {
         }
 
         private void Through() {
-            questionNumber++;
-            questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
-            pushed = false;
+            QuestionNumberAdd();
         }
 
         private void Invalid() {
-            questionNumber++;
-            questionNumberLabel.Content = (questionNumber + 1).ToString() + "問目";
-            pushed = false;
+            QuestionNumberAdd();
         }
 
         private void UndoClick(object sender, RoutedEventArgs e) {
-            if (!pushed) {
+            if (phase == HayaoshiPhase.Base || phase == HayaoshiPhase.Yomiage) {
                 if (history.Count > 0) {
                     history.RemoveAt(history.Count - 1);
                     StopSound();
                     Reset();
-                    foreach ((Player player, JudgeStatus judge) in history) {
+                    foreach ((HayaoshiMode mode, int number, Player player, JudgeStatus judge) in history) {
+                        this.mode = mode;
                         if (judge == JudgeStatus.Point) {
                             Correct(player);
                         } else if (judge == JudgeStatus.Mistake) {
@@ -281,6 +363,13 @@ namespace hayaoshi {
                         } else if (judge == JudgeStatus.Invalid) {
                             Invalid();
                         }
+                    }
+                    if (mode == HayaoshiMode.Base) {
+                        locRadioDic["base"].IsChecked = true;
+                    } else if (mode == HayaoshiMode.Endless) {
+                        locRadioDic["endless"].IsChecked = true;
+                    } else if (mode == HayaoshiMode.Check) {
+                        locRadioDic["check"].IsChecked = true;
                     }
                 }
             }
@@ -304,17 +393,20 @@ namespace hayaoshi {
             questionNumber = 0;
             questionNumberLabel.Content = "1問目";
             message.Content = "出題中";
+            phase = HayaoshiPhase.Base;
         }
 
         private void QuestionClick(object sender, RoutedEventArgs e) {
-            if (!pushed) {
+            if (phase == HayaoshiPhase.Base) {
                 StopSound();
                 int len = questionSounds.Count();
                 if (questionNumber < len) {
                     PlaySound(questionSounds[questionNumber]);
+                    playingQuestionSound = questionSounds[questionNumber];
                 } else {
                     message.Content = "もう問題がありません";
                 }
+                phase = HayaoshiPhase.Yomiage;
             }
         }
 
@@ -331,8 +423,12 @@ namespace hayaoshi {
             foreach (string item in sounds.Values) {
                 Microsoft.SmallBasic.Library.Sound.Stop(item);
             }
-            foreach (string item in questionSounds) {
-                Microsoft.SmallBasic.Library.Sound.Stop(item);
+            //foreach (string item in questionSounds) {
+            //    Microsoft.SmallBasic.Library.Sound.Stop(item);
+            //}
+            if (playingQuestionSound != null) {
+                Microsoft.SmallBasic.Library.Sound.Stop(playingQuestionSound);
+                playingQuestionSound = null;
             }
         }
     }

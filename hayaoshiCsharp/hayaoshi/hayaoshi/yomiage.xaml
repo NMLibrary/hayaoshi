@@ -9,7 +9,8 @@
     <Grid x:Name="baseGrid" Focusable="True" KeyDown="KeyPush" Loaded="GridLoaded">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="7*"/>
+            <RowDefinition Height="6*"/>
+            <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
@@ -37,7 +38,15 @@
             <Button Name="through" Content="Through" Grid.Row="0" Grid.Column="4" Click="ThroughClick"/>-->
         </Grid>
 
-        <Grid x:Name="messageGrid" Grid.Row="3">
+        <Grid x:Name="modeGrid" Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+        </Grid>
+
+        <Grid x:Name="messageGrid" Grid.Row="4">
             <Viewbox Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left">
                 <Label Name="message" Content="出題中" Foreground="GhostWhite"/>
             </Viewbox>
