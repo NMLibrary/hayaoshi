@@ -46,8 +46,8 @@ namespace hayaoshi {
         public int LoseMistakes { get; set; } = 3;
 
         public List<string> QuestionSounds { get; set; } = new List<string>();
-        public List<(string question, string answer)> QuestionStrings { get; set; }
-            = new List<(string question, string answer)>();
+        public List<(string sentence, string answer)> QuestionStrings { get; set; }
+            = new List<(string sentence, string answer)>();
         private Random random = new Random();
 
         public void JoystickSetup() {
@@ -298,6 +298,9 @@ namespace hayaoshi {
                     IRow row = sheet.GetRow(i);
                     string question = row.GetCell(1).ToString();
                     string answer = row.GetCell(2).ToString();
+                    if (question == "") {
+                        break;
+                    }
                     QuestionStrings.Add((question, answer));
                 }
             }

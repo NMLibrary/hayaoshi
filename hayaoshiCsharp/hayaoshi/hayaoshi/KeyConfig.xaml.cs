@@ -182,13 +182,19 @@ namespace hayaoshi {
         private void MakeLoadGrid() {
             Button controllerLoadButton = new Button();
             BaseData.ButtonAdd(ref loadGrid, ref controllerLoadButton, LoadController,
-                "controllerLoadButton", "ジョイスティックの初期化", 0, 3);
+                "controllerLoadButton", "ジョイスティックの初期化", 0, 2);
             Button questionLoadButton = new Button();
             BaseData.ButtonAdd(ref loadGrid, ref questionLoadButton, LoadFile, "questionLoadButton",
-                "問題のロード", 0, 1);
+                "音声のロード", 0, 0);
             Button questionClearButton = new Button();
             BaseData.ButtonAdd(ref loadGrid, ref questionClearButton, QuestionSoundsClear, "questionClearButton",
-                "問題のリセット", 0, 4);
+                "音声のリセット", 0, 1);
+            Button questionStringLoadButton = new Button();
+            BaseData.ButtonAdd(ref loadGrid, ref questionStringLoadButton, LoadQuestionFile, "questionStringLoadButton",
+                "問題文のロード", 0, 3);
+            Button questionStringClearButton = new Button();
+            BaseData.ButtonAdd(ref loadGrid, ref questionStringClearButton, QuestionStringsClear, "questionStringClearButton",
+                "問題文のリセット", 0, 4);
         }
 
         private void TextBoxChanged(object sender, TextChangedEventArgs e) {
@@ -405,6 +411,14 @@ namespace hayaoshi {
                 } else {
                     locLabelDic["message"].Content = "失敗。要再起動。";
                 }
+            }
+        }
+
+        //問題文のリセット
+        private void QuestionStringsClear(object sender, RoutedEventArgs e) {
+            if (configIndex == -1) {
+                baseData.QuestionStrings = new List<(string, string)>();
+                locLabelDic["message"].Content = "表示用問題文をリセットしました。現在0問入っています";
             }
         }
     }

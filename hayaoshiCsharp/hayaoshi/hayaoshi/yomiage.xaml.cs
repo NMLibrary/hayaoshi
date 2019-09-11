@@ -42,6 +42,7 @@ namespace hayaoshi {
         string soundDirectory;
         Dictionary<string, string> sounds;
         List<string> questionSounds;
+        List<(string sentence, string answer)> questionStrings;
         string playingQuestionSound = null;
 
         Joystick[] Joysticks;
@@ -58,6 +59,7 @@ namespace hayaoshi {
             locButtonDic = new Dictionary<string, Button>();
             locRadioDic = new Dictionary<string, RadioButton>();
             questionSounds = baseData.QuestionSounds;
+            questionStrings = baseData.QuestionStrings;
 
             MakeWindow();
 
@@ -175,11 +177,15 @@ namespace hayaoshi {
             BaseData.ButtonAdd(ref operationGrid, ref readButton, QuestionClick, "", "読み上げ", 0, 0);
             locButtonDic["read"] = readButton;
             Button undoButton = new Button();
-            BaseData.ButtonAdd(ref operationGrid, ref undoButton, UndoClick, "", "Undo", 0, 2);
+            BaseData.ButtonAdd(ref operationGrid, ref undoButton, UndoClick, "", "Undo", 0, 1);
             locButtonDic["undo"] = undoButton;
             Button throughButton = new Button();
-            BaseData.ButtonAdd(ref operationGrid, ref throughButton, ThroughClick, "", "Through", 0, 4);
+            BaseData.ButtonAdd(ref operationGrid, ref throughButton, ThroughClick, "", "Through", 0, 2);
             locButtonDic["through"] = throughButton;
+            Button showQuestionButton = new Button();
+            BaseData.ButtonAdd(ref operationGrid, ref showQuestionButton, QuestionSentenceClick, "",
+                "問題文表示", 0, 4);
+            locButtonDic["showQuestion"] = showQuestionButton;
         }
 
         private void MakeModeGrid() {
@@ -407,6 +413,20 @@ namespace hayaoshi {
                     message.Content = "もう問題がありません";
                 }
                 phase = HayaoshiPhase.Yomiage;
+            }
+        }
+
+        private void QuestionSentenceClick(object sender, RoutedEventArgs e) {
+            int len = questionStrings.Count();
+            if (questionNumber == 0) {
+                questionStringLabel.Text = "まだ始まっていません";
+                questionAnswerLabel.Text = "A. ？？？";
+            } else if (questionNumber - 1 < len) {
+                questionStringLabel.Text = questionStrings[questionNumber - 1].sentence;
+                questionAnswerLabel.Text = "A. " + questionStrings[questionNumber - 1].answer;
+            } else {
+                questionStringLabel.Text = "もう問題がありません";
+                questionAnswerLabel.Text = "A. ？？？";
             }
         }
 

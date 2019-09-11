@@ -8,21 +8,32 @@
         Title="yomiage" Height="600" Width="800">
     <Grid x:Name="baseGrid" Focusable="True" KeyDown="KeyPush" Loaded="GridLoaded">
         <Grid.RowDefinitions>
-            <RowDefinition Height="1*"/>
-            <RowDefinition Height="6*"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="5*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
 
         <Grid x:Name="topGrid" Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Viewbox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right">
-                <Label Name="questionNumberLabel" Content="0問目" Foreground="GhostWhite"/>
-            </Viewbox>
+            <Label Name="questionNumberLabel" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
+                   FontSize="30" Content="0問目" Foreground="GhostWhite"/>
+            <TextBlock Name="questionStringLabel" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                       Foreground="GhostWhite" FontSize="25" TextWrapping="Wrap" VerticalAlignment="Center">
+                    ここに問題文が表示されます。Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </TextBlock>
+            <TextBlock Name="questionAnswerLabel" Grid.Row="1" Grid.Column="0"
+                       Foreground="Yellow" FontSize="25" TextWrapping="Wrap" VerticalAlignment="Center">
+                A. ここに答えが表示されます。
+            </TextBlock>
         </Grid>
 
         <Grid x:Name="operationGrid" Grid.Row="2">
